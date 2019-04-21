@@ -1,5 +1,5 @@
 [[create-new-project]]
-=== Setting up tools
+=== Create new project
 
 In this Lab we will look at how create a new project.
 
