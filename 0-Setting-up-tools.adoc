@@ -7,7 +7,7 @@ In this Lab we will look at how to install the necessary tools for this course.
 
 After completing this section, you should be able to:
 
-* Have your first grails app running on your machine.
+* Have all tools installed properly in order for the first project to run.
 
 * Note: This setup only works for `windows 10` machines.
 
