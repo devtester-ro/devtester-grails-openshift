@@ -24,8 +24,9 @@ image::images/new-project-2.PNG[image]
 
 image::images/project.PNG[image]
 
+*Run application*
 
-*Hit Play and wait for the browser*
-
+- Press `Play` button or hit `Shift+F10`
+- Wait for the application to load or start a browser on `http://localhost:8080`
 
 link:0_toc.adoc[Table Of Contents]

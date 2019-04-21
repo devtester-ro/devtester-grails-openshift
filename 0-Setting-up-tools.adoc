@@ -58,6 +58,6 @@ $ docker --version
 - Expose daemon:
     ** Expose daemon on tcp://localhost:2375 without TLS.
 - Memory issues:
-    ** If you have less than 2GB available for Docker please lower the memory usage.
+    ** If you have less than 2GB Ram available for Docker please lower the memory usage.
 
 link:0_toc.adoc[Table Of Contents]
