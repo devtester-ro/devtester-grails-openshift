@@ -1,5 +1,5 @@
 [[devtester-grails-openshift]]
-Hands-on Groovy Grails with OpenShift
+Devtester Grails Openshift
 --------------------------
 
 [[lab-exercises-table-of-contents]]
