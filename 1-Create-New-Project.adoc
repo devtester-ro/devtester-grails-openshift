@@ -29,4 +29,18 @@ image::images/project.PNG[image]
 - Press `Play` button or hit `Shift+F10`
 - Wait for the application to load or start a browser on `http://localhost:8080`
 
+image::images/first-run.PNG[image]
+
+*Troubleshooting*
+
+- Change default port:
+    ** Hit `Ctrl+Shift+N` and type `application.yaml`
+    ** Scroll to the bottom and add:
+
+        server:
+            port: 8090
+
+    ** Hit `Play` and see that the app starts on the new assigned port.
+
+
 link:0_toc.adoc[Table Of Contents]
