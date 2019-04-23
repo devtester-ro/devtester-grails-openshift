@@ -1,5 +1,8 @@
 package devtester.grails.openshift
 
+import grails.gorm.transactions.Transactional
+
+@Transactional
 class BootStrap {
 
     def init = { servletContext ->
