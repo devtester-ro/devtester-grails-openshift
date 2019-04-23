@@ -14,6 +14,11 @@ class CustomerController {
         [customerList: customer]
     }
 
+    def customerLookup(Customer lookup) {
+        def (customer, welcomeMessage) = calculationsService.processCheckin(lookup)
+        render(view: "checkin", model: [customer: customer, welcomeMessage: welcomeMessage])
+    }
+
     def index() {
         params.max = 10
         [customerList: Customer.list(params), customerCount: Customer.count()]
