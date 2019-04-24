@@ -8,6 +8,7 @@ buildscript {
         classpath "org.grails.plugins:hibernate5:${gormVersion-".RELEASE"}"
         classpath "gradle.plugin.com.github.erdi.webdriver-binaries:webdriver-binaries-gradle-plugin:2.0"
         classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.0.10"
+        classpath "com.bmuschko:gradle-docker-plugin:3.5.0"
     }
 }
 
@@ -16,11 +17,13 @@ group "devtester.grails.openshift"
 
 apply plugin:"eclipse"
 apply plugin:"idea"
-apply plugin:"war"
+//apply plugin:"war"
 apply plugin:"org.grails.grails-web"
 apply plugin:"com.github.erdi.webdriver-binaries"
 apply plugin:"org.grails.grails-gsp"
 apply plugin:"com.bertramlabs.asset-pipeline"
+apply plugin:"com.bmuschko.docker-remote-api"
+
 
 repositories {
     mavenLocal()
@@ -76,10 +79,10 @@ dependencies {
 
 bootRun {
     jvmArgs(
-        '-Dspring.output.ansi.enabled=always', 
-        '-noverify', 
-        '-XX:TieredStopAtLevel=1',
-        '-Xmx1024m')
+            '-Dspring.output.ansi.enabled=always',
+            '-noverify',
+            '-XX:TieredStopAtLevel=1',
+            '-Xmx512m')
     sourceResources sourceSets.main
     String springProfilesActive = 'spring.profiles.active'
     systemProperty springProfilesActive, System.getProperty(springProfilesActive)
@@ -101,4 +104,49 @@ tasks.withType(Test) {
 assets {
     minifyJs = true
     minifyCss = true
+}
+
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+
+ext {
+    dockerTag = "levelik/${project.name}:${project.version}".toLowerCase()
+    dockerBuildDir = mkdir("${buildDir}/docker")
+}
+
+task prepareDocker(type: Copy, dependsOn: assemble) {
+    description = 'Copy files from src/main/docker and application jar to Docker temporal build directory'
+    group = 'Docker'
+
+    from 'src/main/docker'
+    from project.jar
+
+    into dockerBuildDir
+}
+task createDockerfile(type: Dockerfile, dependsOn: prepareDocker) {
+    description = 'Create a Dockerfile file'
+    group = 'Docker'
+
+    destFile = project.file("${dockerBuildDir}/Dockerfile")
+
+    from 'openjdk:8-jdk-alpine'
+    maintainer 'Iulian Petcu "iulian.petcu@endava.com"'
+
+    exposePort 8080
+
+    workingDir '/app'
+
+    copyFile jar.archiveName, 'application.jar'
+    copyFile 'app-entrypoint.sh', 'app-entrypoint.sh'
+    runCommand 'chmod +x app-entrypoint.sh'
+
+    entryPoint '/app/app-entrypoint.sh'
+}
+
+task buildImage(type: DockerBuildImage, dependsOn: createDockerfile) {
+    description = 'Create Docker image to run the Grails application'
+    group = 'Docker'
+
+    inputDir = file(dockerBuildDir)
+    tag = dockerTag
 }
