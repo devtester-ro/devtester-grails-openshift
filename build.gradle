@@ -4,13 +4,6 @@ buildscript {
         maven { url "https://repo.grails.org/grails/core" }
     }
 
-    configurations {
-        developmentOnly
-        runtimeClasspath {
-            extendsFrom developmentOnly
-        }
-    }
-
     dependencies {
         developmentOnly("org.springframework.boot:spring-boot-devtools")
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
@@ -35,6 +28,13 @@ apply plugin: "com.bertramlabs.asset-pipeline"
 repositories {
     mavenLocal()
     maven { url "https://repo.grails.org/grails/core" }
+}
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
 }
 
 dependencies {
