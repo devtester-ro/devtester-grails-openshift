@@ -3,11 +3,9 @@ buildscript {
         mavenLocal()
         maven { url "https://repo.grails.org/grails/core" }
     }
-
     dependencies {
-        developmentOnly("org.springframework.boot:spring-boot-devtools")
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath "org.grails.plugins:hibernate5:${gormVersion - ".RELEASE"}"
+        classpath "org.grails.plugins:hibernate5:${gormVersion-".RELEASE"}"
         classpath "gradle.plugin.com.github.erdi.webdriver-binaries:webdriver-binaries-gradle-plugin:2.0"
         classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.0.10"
         classpath "com.bmuschko:gradle-docker-plugin:3.5.0"
@@ -17,13 +15,13 @@ buildscript {
 version "0.1"
 group "devtester.grails.openshift"
 
-apply plugin: "eclipse"
-apply plugin: "idea"
+apply plugin:"eclipse"
+apply plugin:"idea"
 //apply plugin:"war"
-apply plugin: "org.grails.grails-web"
-apply plugin: "com.github.erdi.webdriver-binaries"
-apply plugin: "org.grails.grails-gsp"
-apply plugin: "com.bertramlabs.asset-pipeline"
+apply plugin:"org.grails.grails-web"
+apply plugin:"com.github.erdi.webdriver-binaries"
+apply plugin:"org.grails.grails-gsp"
+apply plugin:"com.bertramlabs.asset-pipeline"
 
 repositories {
     mavenLocal()
@@ -38,6 +36,7 @@ configurations {
 }
 
 dependencies {
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
     compile "org.springframework.boot:spring-boot-starter-logging"
     compile "org.springframework.boot:spring-boot-autoconfigure"
     compile "org.grails:grails-core"
@@ -91,58 +90,60 @@ bootRun {
 webdriverBinaries {
     chromedriver '2.45.0'
     geckodriver '0.24.0'
+}
 
-    assets {
-        minifyJs = true
-        minifyCss = true
-    }
+tasks.withType(Test) {
+    systemProperty "geb.env", System.getProperty('geb.env')
+    systemProperty "geb.build.reportsDir", reporting.file("geb/integrationTest")
+    systemProperty "webdriver.chrome.driver", System.getProperty('webdriver.chrome.driver')
+    systemProperty "webdriver.gecko.driver", System.getProperty('webdriver.gecko.driver')
+}
 
-    tasks.withType(Test) {
-        systemProperty "geb.env", System.getProperty('geb.env')
-        systemProperty "geb.build.reportsDir", reporting.file("geb/integrationTest")
-        systemProperty "webdriver.chrome.driver", System.getProperty('webdriver.chrome.driver')
-        systemProperty "webdriver.gecko.driver", System.getProperty('webdriver.gecko.driver')
-    }
 
-    import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-    import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+assets {
+    minifyJs = true
+    minifyCss = true
+}
 
-    ext {
-        dockerTag = "levelik/${project.name}:${project.version}".toLowerCase()
-        dockerBuildDir = mkdir("${buildDir}/docker")
-    }
-    task prepareDocker(type: Copy, dependsOn: assemble) {
-        description = 'Copy files from src/main/docker and application jar to Docker temporal build directory'
-        group = 'Docker'
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
-        from 'src/main/docker'
-        from project.jar
+ext {
+    dockerTag = "levelik/${project.name}:${project.version}".toLowerCase()
+    dockerBuildDir = mkdir("${buildDir}/docker")
+}
+task prepareDocker(type: Copy, dependsOn: assemble) {
+    description = 'Copy files from src/main/docker and application jar to Docker temporal build directory'
+    group = 'Docker'
 
-        into dockerBuildDir
-    }
-    task createDockerfile(type: Dockerfile, dependsOn: prepareDocker) {
-        description = 'Create a Dockerfile file'
-        group = 'Docker'
+    from 'src/main/docker'
+    from project.jar
 
-        destFile = project.file("${dockerBuildDir}/Dockerfile")
+    into dockerBuildDir
+}
+task createDockerfile(type: Dockerfile, dependsOn: prepareDocker) {
+    description = 'Create a Dockerfile file'
+    group = 'Docker'
 
-        from 'openjdk:8u151-jdk-alpine'
-        maintainer 'Iulian Petcu "iulian.petcu@endava.com"'
+    destFile = project.file("${dockerBuildDir}/Dockerfile")
 
-        exposePort 8080
+    from 'openjdk:8-jdk-alpine'
+    maintainer 'Iulian Petcu "iulian.petcu@endava.com"'
 
-        workingDir '/app'
+    exposePort 8080
 
-        copyFile jar.archiveName, 'application.jar'
-        copyFile 'app-entrypoint.sh', 'app-entrypoint.sh'
-        runCommand 'chmod +x app-entrypoint.sh'
+    workingDir '/app'
 
-        entryPoint '/app/app-entrypoint.sh'
-    }
-    task buildImage(type: DockerBuildImage, dependsOn: createDockerfile) {
-        description = 'Create Docker image to run the Grails application'
-        group = 'Docker'
+    copyFile jar.archiveName, 'application.jar'
+    copyFile 'app-entrypoint.sh', 'app-entrypoint.sh'
+    runCommand 'chmod +x app-entrypoint.sh'
 
-        inputDir = file(dockerBuildDir)
-        tag = dockerTag
-    }
+    entryPoint '/app/app-entrypoint.sh'
+}
+task buildImage(type: DockerBuildImage, dependsOn: createDockerfile) {
+    description = 'Create Docker image to run the Grails application'
+    group = 'Docker'
+
+    inputDir = file(dockerBuildDir)
+    tag = dockerTag
+}
